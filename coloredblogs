@@ -44,10 +44,19 @@ def is_internal_link(href):
 def count_internal_links(article_url):
     try:
         soup = get_soup(article_url)
-        links = soup.find_all("a", href=True)
-        internal_links = [link['href'] for link in links if is_internal_link(link['href'])]
-        return len(internal_links)
-    except Exception:
+        main_text_sections = soup.find_all("div", class_="main-text")
+        internal_links = []
+
+        for section in main_text_sections:
+            anchors = section.find_all("a", href=True)
+            for anchor in anchors:
+                href = anchor['href']
+                if href.startswith("/") or BASE_URL in href:
+                    internal_links.append(href)
+
+        return len(set(internal_links))
+    except Exception as e:
+        print(f"⚠️ Error in {article_url}: {e}")
         return 0
 
 def extract_articles(category_name, category_url):
